@@ -123,11 +123,33 @@
 - (void)applicationDidEnterBackground
 {
     NSLog(@"VC: %@", NSStringFromSelector(_cmd));
-    self.smiley = nil;
-    self.smileyView.image = nil;
+    UIApplication *app = [UIApplication sharedApplication];
     
-    NSInteger selectedIndex = self.segmentedControl.selectedSegmentIndex;
-    [[NSUserDefaults standardUserDefaults] setInteger:selectedIndex forKey:@"selectedIndex"];
+    __block UIBackgroundTaskIdentifier taskId;
+    taskId = [app beginBackgroundTaskWithExpirationHandler:^{
+        NSLog(@"Background task ran out of time and was terminated.");
+        [app endBackgroundTask:taskId];
+    }];
+    
+    if (taskId == UIBackgroundTaskInvalid) {
+        NSLog(@"Failed to start background task!");
+        return;
+    }
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSLog(@"Starting background task with %f seconds remaining", app.backgroundTimeRemaining);
+        self.smiley = nil;
+        self.smileyView.image = nil;
+        NSInteger selectedIndex = self.segmentedControl.selectedSegmentIndex;
+        [[NSUserDefaults standardUserDefaults] setInteger:selectedIndex forKey:@"selectedIndex"];
+        
+        // simulate a lengthy (25 seconds) procedure
+        [NSThread sleepForTimeInterval:25];
+        
+        NSLog(@"Finishing background task with %f seconds remaining", app.backgroundTimeRemaining);
+        [app endBackgroundTask:taskId];
+    });
+    
 }
 
 - (void)applicationWillEnterForeground
