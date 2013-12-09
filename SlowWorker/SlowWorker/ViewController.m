@@ -41,22 +41,34 @@
     self.startButton.enabled = NO;
     self.startButton.alpha = 0.5f;
     [self.spinner startAnimating];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(queue, ^{
         NSString *fetchedData = [self fetchSomethingFromServer];
         NSString *processedData = [self processData:fetchedData];
-        NSString *firstResult = [self calculateFirstResult:processedData];
-        NSString *secondResult = [self calculateSecondResult:processedData];
-        NSString *resultsSummary = [NSString stringWithFormat:@"First: [%@]\nSecond: [%@]", firstResult, secondResult];
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.resultsTextView.text = resultsSummary;
-            self.startButton.enabled = YES;
-            self.startButton.alpha = 1.0f;
-            [self.spinner stopAnimating];
+        __block NSString *firstResult;
+        __block NSString *secondResult;
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_group_async(group, queue, ^{
+            firstResult = [self calculateFirstResult:processedData];
         });
-        
-        NSDate *endTime = [NSDate date];
-        NSLog(@"Completed in %f seconds", [endTime timeIntervalSinceDate:startTime]);
+        dispatch_group_async(group, queue, ^{
+            secondResult = [self calculateSecondResult:processedData];
+        });
+        dispatch_group_notify(group, queue, ^{
+            NSString *resultsSummary = [NSString stringWithFormat:
+                                        @"First: [%@]\nSecond: [%@]", firstResult,
+                                        secondResult];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.resultsTextView.text = resultsSummary;
+                self.startButton.enabled = YES;
+                self.startButton.alpha = 1.0f;
+                [self.spinner stopAnimating];
+            });
+            NSDate *endTime = [NSDate date];
+            NSLog(@"Completed in %f seconds", [endTime timeIntervalSinceDate:startTime]);
+        });
     });
 }
 
