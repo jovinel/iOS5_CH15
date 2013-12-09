@@ -36,8 +36,19 @@
     self.smiley = [UIImage imageWithContentsOfFile:smileyPath];
     self.smileyView.image = self.smiley;
     
+    self.segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"One", @"Two", @"Three", @"Four", nil]];
+    self.segmentedControl.frame = CGRectMake(bounds.origin.x + 20, 50, bounds.size.width - 40, 30);
+    
+    [self.view addSubview:self.segmentedControl];
     [self.view addSubview:self.smileyView];
     [self.view addSubview:self.label];
+    
+    NSNumber *indexNumber = indexNumber = [[NSUserDefaults standardUserDefaults] objectForKey:@"selectedIndex"];
+    
+    if (indexNumber) {
+        NSInteger selectedIndex = [indexNumber intValue];
+        self.segmentedControl.selectedSegmentIndex = selectedIndex;
+    }
     
 }
 
@@ -114,6 +125,9 @@
     NSLog(@"VC: %@", NSStringFromSelector(_cmd));
     self.smiley = nil;
     self.smileyView.image = nil;
+    
+    NSInteger selectedIndex = self.segmentedControl.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:selectedIndex forKey:@"selectedIndex"];
 }
 
 - (void)applicationWillEnterForeground
