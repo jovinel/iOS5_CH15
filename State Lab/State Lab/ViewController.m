@@ -27,6 +27,16 @@
     self.label.text = @"Bazinga!";
     self.label.textAlignment = NSTextAlignmentCenter;
     self.label.backgroundColor = [UIColor clearColor];
+    
+    
+    CGRect smileyFrame = CGRectMake(CGRectGetMidX(bounds) - 42, CGRectGetMidY(bounds)/2 - 42, 84, 84);
+    self.smileyView = [[UIImageView alloc] initWithFrame:smileyFrame];
+    self.smileyView.contentMode = UIViewContentModeCenter;
+    NSString *smileyPath = [[NSBundle mainBundle] pathForResource:@"smiley" ofType:@"png"];
+    self.smiley = [UIImage imageWithContentsOfFile:smileyPath];
+    self.smileyView.image = self.smiley;
+    
+    [self.view addSubview:self.smileyView];
     [self.view addSubview:self.label];
     
 }
@@ -67,13 +77,22 @@
     if (self) {
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self
-                   selector:@selector(applicationWilLResignActive)
+                   selector:@selector(applicationWillResignActive)
                        name:UIApplicationWillResignActiveNotification
                      object:nil];
         [center addObserver:self
                    selector:@selector(applicationDidBecomeActive)
                        name:UIApplicationDidBecomeActiveNotification
                      object:nil];
+        [center addObserver:self
+                   selector:@selector(applicationDidEnterBackground)
+                       name:UIApplicationDidEnterBackgroundNotification
+                     object:nil];
+        [center addObserver:self
+                   selector:@selector(applicationWillEnterForeground)
+                       name:UIApplicationWillEnterForegroundNotification
+                     object:nil];
+        
     }
     return self;
 }
@@ -88,6 +107,21 @@
     NSLog(@"VC: %@", NSStringFromSelector(_cmd));
     animate = YES;
     [self rotateLabelDown];
+}
+
+- (void)applicationDidEnterBackground
+{
+    NSLog(@"VC: %@", NSStringFromSelector(_cmd));
+    self.smiley = nil;
+    self.smileyView.image = nil;
+}
+
+- (void)applicationWillEnterForeground
+{
+    NSLog(@"VC: %@", NSStringFromSelector(_cmd));
+    NSString *smileyPath = [[NSBundle mainBundle] pathForResource:@"smiley" ofType:@"png"];
+    self.smiley = [UIImage imageWithContentsOfFile:smileyPath];
+    self.smileyView.image = self.smiley;
 }
 
 @end
