@@ -38,6 +38,9 @@
 - (IBAction)doWork:(id)sender
 {
     NSDate *startTime = [NSDate date];
+    self.startButton.enabled = NO;
+    self.startButton.alpha = 0.5f;
+    [self.spinner startAnimating];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSString *fetchedData = [self fetchSomethingFromServer];
         NSString *processedData = [self processData:fetchedData];
@@ -47,6 +50,9 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             self.resultsTextView.text = resultsSummary;
+            self.startButton.enabled = YES;
+            self.startButton.alpha = 1.0f;
+            [self.spinner stopAnimating];
         });
         
         NSDate *endTime = [NSDate date];
